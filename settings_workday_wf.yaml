@@ -1,0 +1,182 @@
+FolderName: WFDashboard
+DatasourceUid: "P6693426190CB2316"
+ApiToken: eyJrIjoiZUtSZVlmcHJoNFQ3Z1poQTFZd3lwbXp1V0RSejFPZ1EiLCJuIjoiQWRkUnVsZXNUb2tlbiIsImlkIjoxfQ==
+GrafanaHost: https://localhost:8080/
+Source: wavefront
+StopOnUnsupportedQuery: false
+StopOnUnsupportedChart: false
+AlertURLAnnotation: "https://workday.wavefront.com/alerts/"
+DecimalPrecision: 3
+# AlertOutfileFormat: valid options are yam or json
+AlertOutfileFormat: yaml
+# AlertFormat valid options are prom/grafana/both
+AlertFormat: prom
+AlertConversionRules:
+  base:
+    labels:
+      - lookup_key: wd_owner,owner
+        lookup_field: AdditionalInformation
+        out_key: wd_owner
+        default: <Undefined>
+      - lookup_key: wd_service,service
+        lookup_field: AdditionalInformation
+        out_key: wd_service
+        default: <Undefined>
+    annotations:
+      - lookup_key: description
+        lookup_field: Name
+        out_key: description
+        default: <Undefined>
+      - lookup_key: summary
+        out_key: summary
+        default: <Undefined>
+      - lookup_key: runbook
+        lookup_field: RunbookLinks,AdditionalInformation
+        out_key: runbook
+        default: <Undefined>
+  bigpanda:  # If this key is found, then target:bigpanda is added to labels.
+    id: target:XijEDpliDjH7f9gA
+    labels:
+      - lookup_key: wd_dc_physical
+        lookup_field: AdditionalInformation
+        out_key: wd_dc_physical
+        default: <Undefined>
+      - lookup_key: wd_env_physical
+        lookup_field: AdditionalInformation
+        out_key: wd_env_physical
+        default: <Undefined>
+      - lookup_key: wd_alert_type
+        out_key: wd_alert_type
+        default: <Undefined>
+      - lookup_key: wd_platform
+        out_key: wd_platform
+        default: <Undefined>
+      - lookup_key: monitoring_platform
+        out_key: monitoring_platform
+        default: pharos-metrics
+      - lookup_key: wd_service_category
+        out_key: wd_service_category
+        default: <Undefined>
+    annotations:
+      - lookup_key: unity_link
+        out_key: unity_link
+        default: <Undefined>
+  pagerduty:
+    id: pd:d8a8e1240a3849b19d9758274b9c0e91
+DashboardDefaults:
+  TimeRange: 10m
+  Span: 15m
+  Color: green
+  Palette: palette-classic
+VariableConversions:
+  host: source
+MissingMetricIndicator: "*** "
+FolderNameToFolderId:
+  bds: 586
+  csv: 599
+  customer-insights: 559
+  dapeng: 262
+  envdata: 565
+  dpm: 260
+  alerts: 333
+  drogon: 603
+  ec: 490
+  xwt: 604
+  inf-api: 608
+  inf-containers: 473
+  inf-dns: 610
+  inf-tools: 472
+  infsre-net: 569
+  infsre-sys: 468
+  ia: 573
+  kenobi: 261
+  lasd: 570
+  mia: 576
+  mldevops_namespace: 566
+  netauto: 486
+  opseng: 606
+  perftools: 386
+  platstor: 598
+  platsec: 602
+  prism: 575
+  ptpe: 568
+  Sandbox: 631
+  scylla: 609
+  search-gap: 508
+  search-reports: 507
+  secpi: 502
+  security-tools-devops: 381
+  servicediscovery: 572
+  stories: 622
+  tco: 607
+  phoenix: 571
+  tlepcauto: 626
+  uiplatform: 595
+  drs: 596
+  iplookup: 593
+  microscope: 585
+  sas: 594
+  uiplatform-sandbox: 597
+  uam: 503
+  upc: 574
+  vaas: 360
+  wpc: 577
+  zonda: 615
+ParserConfig:
+  NoopFuncs:
+    - interpolate
+    - bestEffort
+    - default
+    - last
+  SpaceAggrVars:
+    "${sum}" : "sum"
+  TimeAggrVars:
+  FunctionVars:
+    "${interpolate}" : "interpolate"
+  AdditionalMetricChars: "[]^\\/~"
+  Sanitize:
+    "\t" : " "
+  Operators:
+    "gt" : ">"
+    "gte" : ">="
+    "lt" : "<"
+    "lte" : "<="
+  RangeTranslations:
+    "default" : "5m"  # Default is translated to 5m
+    "vw" : "4h" # view window to time window translation - assuming 1vw = 4h here.
+    "bw" : "2h" # bucket window - defaulting to 2 hours.
+  UnitTranslations:
+    "M" : "000000" # M is translated to six zeros (1,000,000)
+  CustomTagRules:
+    - tagname: source
+      wildcard: false
+      default: TBD
+      description: "wildcard is not allowed for source tag's value. Please see https://docs.google.com/document/d/16FTIiA_Zzaa1pUCAHiUcUsm6Reei35MCnJd7JYIm8tI/edit#heading=h.ehtrwmrq65x"
+      policy: split
+      splitrules:
+        - tagname: wd_dc_physical
+          lookup: pdx
+          use: us-west-2
+        - tagname: wd_env_physical
+          lookup: eng
+          use: eng
+    - tagname: _name_
+      wildcard: false
+      policy: drop
+      default: TBD
+      description: "wildcard is not allowed for _name_ tag's value. Please see https://docs.google.com/document/d/16FTIiA_Zzaa1pUCAHiUcUsm6Reei35MCnJd7JYIm8tI/edit#heading=h.ehtrwmrq65x"
+    - tagname: cname
+      wildcard: false
+      policy: replace
+      default: TBD
+      description: "wildcard is not allowed for cname tag's value. Please see https://docs.google.com/document/d/16FTIiA_Zzaa1pUCAHiUcUsm6Reei35MCnJd7JYIm8tI/edit#heading=h.ehtrwmrq65x"
+  AdditionalDescriptions:
+    - name: if
+      type: function
+      description: "Please check https://confluence.workday.com/display/TECHCUSTOPS/Query+language#Querylanguage-The%E2%80%9Cif%E2%80%9Dmethod for workaround"
+    - name: orElse
+      type: function
+      description: "For orElse consider using something like https://grafana.com/docs/grafana/latest/panels-visualizations/configure-value-mappings/ in the relevant panel if it fits the need of this query."
+    - name: alert
+      type: metric_name
+      description: "'alerts' in prom should be looked up using count(ALERTS{wd_owner=“<namespace>”})) instead."
