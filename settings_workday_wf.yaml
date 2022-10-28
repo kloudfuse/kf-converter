@@ -148,35 +148,37 @@ ParserConfig:
   UnitTranslations:
     "M" : "000000" # M is translated to six zeros (1,000,000)
   CustomTagRules:
-    - tagname: source
-      wildcard: false
-      default: TBD
-      description: "wildcard is not allowed for source tag's value. Please see https://docs.google.com/document/d/16FTIiA_Zzaa1pUCAHiUcUsm6Reei35MCnJd7JYIm8tI/edit#heading=h.ehtrwmrq65x"
-      policy: split
-      splitrules:
-        - tagname: wd_dc_physical
-          lookup: pdx
-          use: us-west-2
-        - tagname: wd_env_physical
-          lookup: eng
-          use: eng
-    - tagname: _name_
-      wildcard: false
-      policy: drop
-      default: TBD
-      description: "wildcard is not allowed for _name_ tag's value. Please see https://docs.google.com/document/d/16FTIiA_Zzaa1pUCAHiUcUsm6Reei35MCnJd7JYIm8tI/edit#heading=h.ehtrwmrq65x"
-    - tagname: cname
-      wildcard: false
-      policy: replace
-      default: TBD
-      description: "wildcard is not allowed for cname tag's value. Please see https://docs.google.com/document/d/16FTIiA_Zzaa1pUCAHiUcUsm6Reei35MCnJd7JYIm8tI/edit#heading=h.ehtrwmrq65x"
+    - Tagname: source
+      Wildcard: false
+      Default: TBD
+      Description: "wildcard is not allowed for source tags value. Please see https://docs.google.com/document/d/16FTIiA_Zzaa1pUCAHiUcUsm6Reei35MCnJd7JYIm8tI/edit#heading=h.ehtrwmrq65x"
+      # 'split' policy will split the 'source' label and values based on the following splitrules.
+      Policy: split
+      # Following splitrule mean that 'source' label will be split to the list of specified tagnames and for each of those tags, if the 'lookup' value is found in the original value then it is replaced with 'use' value
+      Splitrules:
+        - Tagname: wd_dc_physical
+          Lookup: pdx
+          Use: us-west-2
+        - Tagname: wd_env_physical
+          Lookup: eng
+          Use: eng
+    - Tagname: _name_
+      Policy: drop # This policy will drop '_name_ tag and value from the generated query.
+      Wildcard: false
+      Default: TBD
+      Description: "wildcard is not allowed for _name_ tag value. Please see https://docs.google.com/document/d/16FTIiA_Zzaa1pUCAHiUcUsm6Reei35MCnJd7JYIm8tI/edit#heading=h.ehtrwmrq65x"
+    - Tagname: cname
+      Policy: replace_with_default  # This policy will add 'cname="TBD" as label because TBD is the default value for this tag
+      Wildcard: false
+      Default: TBD
+      Description: "wildcard is not allowed for cname tag value. Please see https://docs.google.com/document/d/16FTIiA_Zzaa1pUCAHiUcUsm6Reei35MCnJd7JYIm8tI/edit#heading=h.ehtrwmrq65x"
   AdditionalDescriptions:
-    - name: if
-      type: function
-      description: "Please check https://confluence.workday.com/display/TECHCUSTOPS/Query+language#Querylanguage-The%E2%80%9Cif%E2%80%9Dmethod for workaround"
-    - name: orElse
-      type: function
-      description: "For orElse consider using something like https://grafana.com/docs/grafana/latest/panels-visualizations/configure-value-mappings/ in the relevant panel if it fits the need of this query."
-    - name: alert
-      type: metric_name
-      description: "'alerts' in prom should be looked up using count(ALERTS{wd_owner=“<namespace>”})) instead."
+    - Name: if
+      Type: function
+      Description: "Please check https://confluence.workday.com/display/TECHCUSTOPS/Query+language#Querylanguage-The%E2%80%9Cif%E2%80%9Dmethod for workaround"
+    - Name: orElse
+      Type: function
+      Description: "For orElse consider using something like https://grafana.com/docs/grafana/latest/panels-visualizations/configure-value-mappings/ in the relevant panel if it fits the need of this query."
+    - Name: alert
+      Type: metric_name
+      Description: "'alerts' in prom should be looked up using count(ALERTS{wd_owner=“<namespace>”})) instead."
