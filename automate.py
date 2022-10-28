@@ -86,7 +86,7 @@ def download_dbs(dbnames, dirnames, force=False, dryrun=False):
     download the db in the link and store that in it's corresponding namespace directory.
     '''
     for i in range(len(dbnames)):
-        print("changing dir", dbnames[i])
+        print("changing dir", dirnames[i])
         os.chdir(dirnames[i])
         print(os.getcwd())
         if not os.path.exists('%s.json' % dbnames[i]) or force:
@@ -110,6 +110,9 @@ def create_prs(dirnames=[], reviewers=[], namespaces=[], dbnames=[], msg="TEST -
     cwd = os.getcwd()
     os.chdir(toplevel_dir)
     invalidReviewer = 0
+    invalidReviewers = {}
+    validReviewers = {}
+    no_converted_files = 0
     for i in range(len(dbnames)):
         dbname = dbnames[i]
         dirname = dirnames[i]
@@ -120,8 +123,13 @@ def create_prs(dirnames=[], reviewers=[], namespaces=[], dbnames=[], msg="TEST -
             co_cmd = 'git checkout -b %s' % branchname
             run([co_cmd], dryrun=dryrun)
         except subprocess.CalledProcessError as cpe:
-            co_cmd = 'git checkout %s' % branchname
+            co_cmd = 'git checkout -f %s' % branchname
             run([co_cmd], dryrun=dryrun)
+
+        if not os.path.exists(os.path.join(dirname, '%s_grafana.json' % dbname)):
+            no_converted_files += 1
+            continue
+
         filenames = glob.glob(os.path.join(dirname, '%s*.json' % dbname))
         git_add_cmd = 'git add %s' % ' '.join(filenames)
         run([git_add_cmd], dryrun=dryrun)
@@ -140,9 +148,15 @@ def create_prs(dirnames=[], reviewers=[], namespaces=[], dbnames=[], msg="TEST -
         except subprocess.CalledProcessError as cpe:
             print("invalid ghe reviewer", cpe, dbname)
             invalidReviewer += 1
+            invalidReviewers[reviewers[i]] = True
+            print("invalidReviewers: ", invalidReviewers.keys())
+        else:
+            validReviewers[reviewers[i]] = True
+        print("validReviewers: ", validReviewers.keys())
         co_main_cmd = 'git checkout master'
         run([co_main_cmd], dryrun=dryrun)
     print("number of invalid reviewers (non-unique): ", invalidReviewer)
+    print("number of branches with no converted files: ", no_converted_files)
     os.chdir(cwd)
 
 
@@ -153,9 +167,9 @@ def exec_steps():
     for i in range(len(dblinks)):
         print(dbnames[i], namespaces[i], reviewers[i])
     dirnames = mkdirs(namespaces)
-    download_dbs(dbnames, dirnames, dryrun=False)
+    download_dbs(dbnames, dirnames, dryrun=False, force=True)
     print('number of dashboards downloaded:', len(dbnames))
-    create_prs(dirnames=dirnames, reviewers=reviewers, namespaces=namespaces, dbnames=dbnames, dryrun=False, msg="Conversion")
+    # create_prs(dirnames=dirnames, reviewers=reviewers, namespaces=namespaces, dbnames=dbnames, dryrun=False, msg="Conversion")
 
 if __name__ == "__main__":
     # pdb.runcall(exec_steps)
