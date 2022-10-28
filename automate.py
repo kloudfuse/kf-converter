@@ -15,10 +15,12 @@ import pdb
 toplevel_dir = os.path.join(os.getcwd())
 print(toplevel_dir)
 download_cmd_str = "curl 'https://workday.wavefront.com/api/v2/dashboard/%s' -H 'Authorization: Bearer 537fdad9-f66a-4c79-ad81-f9c3faf1ee72' | jq > \"%s\".json"
-
+converter_abs_dir = os.path.join(os.path.abspath(toplevel_dir), os.path.pardir, 'conversions-binary')
+print(converter_abs_dir)
+converter_cmd = "%s/dashboard_converter -c %s/settings_workday_wf.yaml" % (converter_abs_dir, converter_abs_dir)
 def run(cmd, dryrun=False, check=True, shell=True, capture_output=False, timeout=None, *args):
     assert not(dryrun and capture_output) or dryrun ^ capture_output,\
-        "Only one of dryrun/capture_output should be set; fix the code"        
+        "Only one of dryrun/capture_output should be set; fix the code"
     print("{}".format(' '.join(cmd)))
     if dryrun:
         return
@@ -97,10 +99,10 @@ def download_dbs(dbnames, dirnames, force=False, dryrun=False):
             print('not downloading', '%s.json' % dbnames[i])
     os.chdir(toplevel_dir)
 
-def create_prs(dirnames=[], reviewers=[], namespaces=[], dbnames=[], msg="TEST - DO NOT REVIEW", dryrun=True):
+def create_prs(dirnames=[], reviewers=[], namespaces=[], dbnames=[], msg="TEST - DO NOT REVIEW", dryrun=True, generate=True):
     '''
     Creates PR by following these steps.
-    For each db in list of dashboards:        
+    For each db in list of dashboards:
         1. create/checkout branch with the name of <dbname>_dashboards
         2. Add all files ending with .json in that directory to the commit.
         3. rebases with current main (tot)
@@ -125,7 +127,11 @@ def create_prs(dirnames=[], reviewers=[], namespaces=[], dbnames=[], msg="TEST -
         except subprocess.CalledProcessError as cpe:
             co_cmd = 'git checkout -f %s' % branchname
             run([co_cmd], dryrun=dryrun)
-
+        if generate:
+            print("converting dashboards in %s", dirname)
+            converter_full_cmd = '%s -d %s' % (converter_cmd, dirname)
+            run([converter_full_cmd], dryrun=dryrun)
+            # Do actual conversion now.
         if not os.path.exists(os.path.join(dirname, '%s_grafana.json' % dbname)):
             no_converted_files += 1
             continue
@@ -169,7 +175,7 @@ def exec_steps():
     dirnames = mkdirs(namespaces)
     download_dbs(dbnames, dirnames, dryrun=False, force=True)
     print('number of dashboards downloaded:', len(dbnames))
-    # create_prs(dirnames=dirnames, reviewers=reviewers, namespaces=namespaces, dbnames=dbnames, dryrun=False, msg="Conversion")
+    create_prs(dirnames=dirnames, reviewers=reviewers, namespaces=namespaces, dbnames=dbnames, dryrun=False, msg="Conversion", generate=False)
 
 if __name__ == "__main__":
     # pdb.runcall(exec_steps)
