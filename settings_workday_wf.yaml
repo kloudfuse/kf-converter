@@ -11,6 +11,38 @@ DecimalPrecision: 3
 AlertOutfileFormat: yaml
 # AlertFormat valid options are prom/grafana/both
 AlertFormat: prom
+# NotificantSettings configures how the converter will look up notificant
+# from the notificants.json input file. For each notificant, the lookup_value
+# is looked up in the "recipient" and "response" fields in a case-insensitive, substring matching way.
+# NotificantSettings together with the AlertConversionRules should help automatically add the right
+# labels and annotations to each converted alert.
+NotificantSettings:
+  - name: bigpanda
+    lookup_value: https://api.bigpanda.io/data/v2/alerts
+  - name: slack
+    lookup_value: https://hooks.slack.com/
+  - name: pagerduty
+    lookup_value: pagerduty
+# AlertConversionRules specifies the rules to be applied for extracting labels and annotations
+# from an alert payload. Here's how these settings are used.
+# For any given alert, the alerts target id is looked up from the "input notificants file" (this is
+# the response of /api/v2/notificant/ from wavefront which will give all notificants in the system).
+# Recipient and method fields for that notificant is matched against the above NotificationSettings. If
+# a notificant is matched then the "name" of that notificant is looked up in the following rules to find
+# if there are conversion rules to be applied.
+# A given alert conversion rule specifies:
+#  lookup_field - which field in the alert to be looked up to find lookup_key(s) and if found,
+#  then a label/annotation with out_key:<found_value> will be added to label/annotation otherwise
+#  out_key:<default> is added.
+# Example:
+# if an alert uses id: 38kOQeCgEa33oysw in targetEndpoints or Targets[<severity>] or Target or []TargetInfo
+# then converter will lookup '38kOQeCgEa33oysw' in notificants.json. The Recipient and Method fields of Notificant
+# are then looked up against each of the lookup_value(s) in NotificantSettings. Let's assume that it matched
+# with name: bigpanda, that means that this alert uses bigpanda target and therefore the labels and annotations
+# will be applied from 'bigpanda' section below.
+# Additionally, if the field 'AdditionalInformation' contains 'owner:<someval>' (note that 'owner' is one of the lookup_key)
+# then wd_owner=<someval> is added to the labels.
+# 'base' definition is always applied with fields overwritten from more specific targets if found.
 AlertConversionRules:
   base:
     labels:
@@ -34,8 +66,7 @@ AlertConversionRules:
         lookup_field: RunbookLinks,AdditionalInformation
         out_key: runbook
         default: <Undefined>
-  bigpanda:  # If this key is found, then target:bigpanda is added to labels.
-    id: target:XijEDpliDjH7f9gA
+  bigpanda:  # If this key is found, then bigpanda:true is added to labels.
     labels:
       - lookup_key: wd_dc_physical
         lookup_field: AdditionalInformation
@@ -62,7 +93,11 @@ AlertConversionRules:
         out_key: unity_link
         default: <Undefined>
   pagerduty:
-    id: pd:d8a8e1240a3849b19d9758274b9c0e91
+    labels:
+    annotations:
+  slack:
+    labels:
+    annotations:
 DashboardDefaults:
   TimeRange: 10m
   Span: 15m
@@ -175,10 +210,10 @@ ParserConfig:
   AdditionalDescriptions:
     - Name: if
       Type: function
-      Description: "Please check https://confluence.workday.com/display/TECHCUSTOPS/Query+language#Querylanguage-The%E2%80%9Cif%E2%80%9Dmethod for workaround"
+      Description: "Please check https://docs.google.com/drawings/d/1A-Uq1Rze_LU1cn7ey87VAld7h0SZ0kjjdj6jE2plPY8/edit?usp=sharing for workaround"
     - Name: orElse
       Type: function
       Description: "For orElse consider using something like https://grafana.com/docs/grafana/latest/panels-visualizations/configure-value-mappings/ in the relevant panel if it fits the need of this query."
     - Name: alert
       Type: metric_name
-      Description: "'alerts' in prom should be looked up using count(ALERTS{wd_owner=“<namespace>”})) instead."
+      Description: "'alerts' in prom should be looked up using count(ALERTS{wd_owner=“<namespace>”})) instead. Please see https://docs.google.com/drawings/d/1A-Uq1Rze_LU1cn7ey87VAld7h0SZ0kjjdj6jE2plPY8/edit?usp=sharing"

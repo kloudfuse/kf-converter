@@ -4,6 +4,7 @@ This repository contains the binaries to run the conversions of artifacts from s
 
 To use the tools in this repo, please follow the steps below.
 
+0. Install python 3.12
 1. mkdir /tmp/kfuse-parser
 2. unzip kfuse_parser-0.0.1-py3.12.egg -d /tmp/kfuse-parser
 3. pip3 install -r /tmp/kfuse-parser/requirements.txt
