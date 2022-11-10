@@ -7,12 +7,20 @@ StopOnUnsupportedQuery: false
 StopOnUnsupportedChart: false
 AlertURLAnnotation: "https://workday.wavefront.com/alerts/"
 DecimalPrecision: 3
-# AlertOutfileFormat: valid options are yam or json
+# AlertOutfileFormat: valid options are yaml or json or both
 AlertOutfileFormat: yaml
 # AlertFormat valid options are prom/grafana/both
 AlertFormat: prom
+SeverityMappings:
+  severe: critical
+  warn: warning
+  smoke: <smoke_is_not_a_valid_severity>
+  info: <info_is_not_a_valid_severity>
+NotificantLinkPrefix: "https://workday.wavefront.com/notificants/"
+# Following are considered to be prefixes of target/notificant id
+NotificantIdPrefixes: "target:,pd:"
 # NotificantSettings configures how the converter will look up notificant
-# from the notificants.json input file. For each notificant, the lookup_value
+# from the notificants.json input file. For each notificant, the name as well as lookup_value (comma separated list)
 # is looked up in the "recipient" and "response" fields in a case-insensitive, substring matching way.
 # NotificantSettings together with the AlertConversionRules should help automatically add the right
 # labels and annotations to each converted alert.
@@ -22,7 +30,10 @@ NotificantSettings:
   - name: slack
     lookup_value: https://hooks.slack.com/
   - name: pagerduty
+    target_pfx: pd
     lookup_value: pagerduty
+  - name: email
+    target_sfx: "@workday.com"
 # AlertConversionRules specifies the rules to be applied for extracting labels and annotations
 # from an alert payload. Here's how these settings are used.
 # For any given alert, the alerts target id is looked up from the "input notificants file" (this is
@@ -44,60 +55,72 @@ NotificantSettings:
 # then wd_owner=<someval> is added to the labels.
 # 'base' definition is always applied with fields overwritten from more specific targets if found.
 AlertConversionRules:
-  base:
-    labels:
-      - lookup_key: wd_owner,owner
-        lookup_field: AdditionalInformation
-        out_key: wd_owner
-        default: <Undefined>
-      - lookup_key: wd_service,service
-        lookup_field: AdditionalInformation
-        out_key: wd_service
-        default: <Undefined>
-    annotations:
-      - lookup_key: description
-        lookup_field: Name
-        out_key: description
-        default: <Undefined>
-      - lookup_key: summary
-        out_key: summary
-        default: <Undefined>
-      - lookup_key: runbook
-        lookup_field: RunbookLinks,AdditionalInformation
-        out_key: runbook
-        default: <Undefined>
-  bigpanda:  # If this key is found, then bigpanda:true is added to labels.
-    labels:
-      - lookup_key: wd_dc_physical
-        lookup_field: AdditionalInformation
-        out_key: wd_dc_physical
-        default: <Undefined>
-      - lookup_key: wd_env_physical
-        lookup_field: AdditionalInformation
-        out_key: wd_env_physical
-        default: <Undefined>
-      - lookup_key: wd_alert_type
-        out_key: wd_alert_type
-        default: <Undefined>
-      - lookup_key: wd_platform
-        out_key: wd_platform
-        default: <Undefined>
-      - lookup_key: monitoring_platform
-        out_key: monitoring_platform
-        default: pharos-metrics
-      - lookup_key: wd_service_category
-        out_key: wd_service_category
-        default: <Undefined>
-    annotations:
-      - lookup_key: unity_link
-        out_key: unity_link
-        default: <Undefined>
-  pagerduty:
-    labels:
-    annotations:
-  slack:
-    labels:
-    annotations:
+  group_name: "CHANGE_ME_GROUP_NAME"
+  alert_name_check: "FROM_RFC"
+  tag_rules:
+    base:
+      labels:
+        - lookup_key: wd_owner,owner
+          lookup_field: AdditionalInformation
+          out_key: wd_owner
+          default: <Undefined>
+        - lookup_key: wd_service,service
+          lookup_field: AdditionalInformation
+          out_key: wd_service
+          default: <Undefined>
+      annotations:
+        - lookup_key: description
+          lookup_field: Name
+          out_key: description
+          default: <Undefined>
+        - lookup_key: summary
+          out_key: summary
+          default: <Undefined>
+        - lookup_key: runbook
+          lookup_field: RunbookLinks,AdditionalInformation
+          out_key: runbook
+          default: <Undefined>
+    bigpanda:  # If this key is found, then bigpanda:true is added to labels.
+      labels:
+        - lookup_key: wd_dc_physical
+          lookup_field: AdditionalInformation
+          out_key: wd_dc_physical
+          default: <Undefined>
+        - lookup_key: wd_env_physical
+          lookup_field: AdditionalInformation
+          out_key: wd_env_physical
+          default: <Undefined>
+        - lookup_key: wd_alert_type
+          out_key: wd_alert_type
+          default: <Undefined>
+        - lookup_key: wd_platform
+          out_key: wd_platform
+          default: <Undefined>
+        - lookup_key: monitoring_platform
+          out_key: monitoring_platform
+          default: pharos_metrics
+        - lookup_key: wd_service_behavior
+          out_key: wd_service_behavior
+          default: <Undefined>
+      annotations:
+        - lookup_key: unity_link
+          out_key: unity_link
+          default: <Undefined>
+    pagerduty:
+      labels:
+        -
+      annotations:
+        -
+    slack:
+      labels:
+        -
+      annotations:
+        -
+    email:
+      labels:
+        -
+      annotations:
+        -
 DashboardDefaults:
   TimeRange: 10m
   Span: 15m
