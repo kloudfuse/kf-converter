@@ -1,0 +1,198 @@
+FolderName: WFDashboard
+DatasourceUid: "P6693426190CB2316"
+ApiToken: yourapitoken
+GrafanaHost: https://localhost:8080/
+Source: wavefront
+StopOnUnsupportedQuery: false
+StopOnUnsupportedChart: false
+AlertURLAnnotation: "https://<name>.wavefront.com/alerts/"
+AlertsRFCDoc: ""
+RFCCompliantAlertsDoc: ""
+DecimalPrecision: 3
+# AlertOutfileFormat: valid options are yaml or json or both
+AlertOutfileFormat: yaml
+# AlertFormat valid options are prom/grafana/both
+AlertFormat: prom
+SeverityMappings:
+  severe: critical
+  warn: warning
+  smoke: <CHANGE_ME_SMOKE_IS_NOT_A_VALID_SEVERITY>
+  info: <CHANGE_ME_INFO_IS_NOT_A_VALID_SEVERITY>
+NotificantLinkPrefix: "https://<name>.wavefront.com/notificants/"
+# Following are considered to be prefixes of target/notificant id
+NotificantIdPrefixes: "target:,pd:"
+# NotificantSettings configures how the converter will look up notificant
+# from the notificants.json input file. For each notificant, the name as well as lookup_value (comma separated list)
+# is looked up in the "recipient" and "response" fields in a case-insensitive, substring matching way.
+# NotificantSettings together with the AlertConversionRules should help automatically add the right
+# labels and annotations to each converted alert.
+NotificantSettings:
+  - name: bigpanda
+    lookup_value: https://api.bigpanda.io/data/v2/alerts
+  - name: slack
+    lookup_value: https://hooks.slack.com/
+  - name: pagerduty
+    target_pfx: pd
+    lookup_value: pagerduty
+  - name: email
+    target_sfx: "@name.com"
+# AlertConversionRules specifies the rules to be applied for extracting labels and annotations
+# from an alert payload. Here's how these settings are used.
+# For any given alert, the alerts target id is looked up from the "input notificants file" (this is
+# the response of /api/v2/notificant/ from wavefront which will give all notificants in the system).
+# Recipient and method fields for that notificant is matched against the above NotificationSettings. If
+# a notificant is matched then the "name" of that notificant is looked up in the following rules to find
+# if there are conversion rules to be applied.
+# A given alert conversion rule specifies:
+#  lookup_field - which field in the alert to be looked up to find lookup_key(s) and if found,
+#  then a label/annotation with out_key:<found_value> will be added to label/annotation otherwise
+#  out_key:<default> is added.
+# Example:
+# if an alert uses id: 38kOQeCgEa33oysw in targetEndpoints or Targets[<severity>] or Target or []TargetInfo
+# then converter will lookup '38kOQeCgEa33oysw' in notificants.json. The Recipient and Method fields of Notificant
+# are then looked up against each of the lookup_value(s) in NotificantSettings. Let's assume that it matched
+# with name: bigpanda, that means that this alert uses bigpanda target and therefore the labels and annotations
+# will be applied from 'bigpanda' section below.
+# Additionally, if the field 'AdditionalInformation' contains 'owner:<someval>' (note that 'owner' is one of the lookup_key)
+# then modified_owner_tag=<someval> is added to the labels.
+# 'base' definition is always applied with fields overwritten from more specific targets if found.
+AlertConversionRules:
+  change_me_group_name: "CHANGE_ME_GROUP_NAME_FAILED_RFC_CHECK"
+  alert_name_checks:
+    max_length: 256
+    regex: "[a-zA-Z_][a-zA-Z0-9_]*"
+    change_me_alert_name: "CHANGE_ME_ALERT_NAME_FAILED_RFC_CHECK"
+  tag_rules:
+    base:
+      labels:
+        - lookup_key: custom_service,service
+          lookup_field: AdditionalInformation
+          out_key: custom_owner_service
+          default: <CHANGE_ME_SERVICE_NAME_FAILED_RFC_CHECK>
+      annotations:
+        - lookup_key: description
+          lookup_field: Name
+          out_key: description
+          default: <CHANGE_ME_DESCRIPTION_FAILED_RFC_CHECK>
+        - lookup_key: summary
+          out_key: summary
+          default: <CHANGE_ME_SUMMARY_FAILED_RFC_CHECK>
+        - lookup_key: runbook
+          lookup_field: RunbookLinks,AdditionalInformation
+          out_key: runbook
+          default: <CHANGE_ME_RUNBOOK_FAILED_RFC_CHECK>
+    bigpanda:  # If this key is found, then bigpanda:true is added to labels.
+      labels:
+        - lookup_key: dc_physical
+          lookup_field: AdditionalInformation
+          out_key: dc_physical
+          default: <CHANGE_ME_DC_FAILED_RFC_CHECK>
+      annotations:
+        - lookup_key: unity_link
+          out_key: unity_link
+          default: <CHANGE_ME_UNITYLINK_FAILED_RFC_CHECK>
+    pagerduty:
+      labels:
+        -
+      annotations:
+        -
+    slack:
+      labels:
+        -
+      annotations:
+        -
+    email:
+      labels:
+        -
+      annotations:
+        -
+DashboardDefaults:
+  TimeRange: 10m
+  Span: 15m
+  Color: green
+  Palette: palette-classic
+VariableConversions:
+  host: source
+MissingMetricIndicator: "*** "
+FolderNameToFolderId:
+ParserConfig:
+  UnsupportedFnMsg: "CHANGE_ME_UNSUPPORTED_FUNC_"
+  NoopFuncs:
+    - interpolate
+    - bestEffort
+    - default
+    - last
+    - limit
+  SpaceAggrVars:
+    "${sum}" : "sum"
+  TimeAggrVars:
+  FunctionVars:
+    "${interpolate}" : "interpolate"
+  AdditionalMetricChars: "[]^\\/~"
+  Sanitize:
+    "\t" : " "
+  Operators:
+    "gt" : ">"
+    "gte" : ">="
+    "lt" : "<"
+    "lte" : "<="
+  RangeTranslations:
+    "default" : "5m"  # Default is translated to 5m
+    "vw" : "4h" # view window to time window translation - assuming 1vw = 4h here.
+    "bw" : "2h" # bucket window - defaulting to 2 hours.
+  UnitTranslations:
+    "M" : "000000" # M is translated to six zeros (1,000,000)
+  CustomTagRules:
+    - Tagname: source
+      Wildcard: false
+      Default: CHANGE_ME_WILDCARD_NOT_ALLOWED
+      Description: "Alert query contained source tag and wildcard is not allowed for source tag value. Look for CHANGE_ME_WILDCARD in <internal doc>
+      # 'split' policy will split the 'source' label and values based on the following splitrules.
+      Policy: split
+      # Following splitrule mean that 'source' label will be split to the list of specified tagnames and for each of those tags, if the 'lookup' value is found in the original value then it is replaced with 'use' value
+      Splitrules:
+        - Tagname: dc_physical
+          Lookup: prod
+          Use: us-west-2
+    - Tagname: _name_
+      Policy: drop # This policy will drop '_name_ tag and value from the generated query.
+      Wildcard: false
+      Default: CHANGE_ME_WILDCARD_NOT_ALLOWED
+      Description: "Alert query contained _name_ tag and wildcard is not allowed for _name_ tag value. Look for CHANGE_ME_WILDCARD in <internal doc>"
+  AdditionalDescriptions:
+    - Name: if
+      Type: function
+      Description: ""
+    - Name: orElse
+      Type: function
+      Description: ""
+    - Name: alert
+      Type: metric_name
+      Description: "'alerts' in prom should be looked up using count(ALERTS{custom_owner_tag=“<namespace>”})) instead. Please see"
+  # Metric name translations change the metric name based on following map.
+  # for example, based on the following setting, aws.ec2.CPUUtilization is
+  # converted to aws.ec2.cpuutilization in the parsing phase. This is applied
+  # even before translation of chars such as '.' to '_' etc.
+  MetricNameTranslations:
+    HTTP_CLIENT_active: http_client_active
+  # metrics under ExpandAvgMetricNames are treated as average for which
+  # the conversion/parsing will break it down to _sum/_count metrics. For example,
+  # based on the following config, aws.ec2.CPUUtilization is first translated
+  # to aws.ec2.cpuutilzation (because this metric is also listed in above translation
+  # map) and then it's broken into aws_ec2_cpuutilization_sum/aws_ec2_cpuutilization_count
+  # so, an expression such as avg:aws.ec2.my.metric{label="val"} by {foo} will get converted into
+  # avg by (foo)((aws_ec2_my_metric_sum{label="val"})/(aws_ec2_my_metric_count{label="val"}))
+  # Note that the same filtering is applied to both metrics. Any space or time aggregate or grouping
+  # is then applied to the expanded conversion.
+  ExpandAvgMetricNames:
+    MetricNames:
+    AggregateNames:
+      avg: expand
+  # Following mapping contains the name of the key/label to be used for a given tag variable.
+  # if a tag variable is not listed here and is encountered in a query, then it is translated as is.
+  # example: avg:foo{$level} will convert to avg(foo{level_name=~"$level"}), but
+  #          avg:foo{$someothervar} will convert to avg(foo{$someothervar}) (since $someothervar isn't
+  # in the following list, it is not expanded.)
+  VarsMapping:
+    DC: dc_physical
+  DropVariablesWithoutMapping: false

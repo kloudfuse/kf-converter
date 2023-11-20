@@ -1,0 +1,117 @@
+FolderName: DDDashboard
+DatasourceUid: "-hvW-oX7k"
+ApiToken:
+GrafanaHost:
+Source: datadog
+StopOnUnsupportedQuery: false
+StopOnUnsupportedChart: false
+AlertURLAnnotation: ""
+AlertsRFCDoc: “”
+RFCCompliantAlertsDoc: “”
+DecimalPrecision: 3
+DefaultInterval: 60 # default interval in seconds for alert rule
+DefaultIntervalStr: "1m" # default interval in string. "60s" is also ok/same
+# AlertOutfileFormat: valid options are yaml or json or both
+AlertOutfileFormat: json
+# AlertFormat valid options are prom/grafana/both
+AlertFormat: grafana
+SeverityMappings:
+  severe: critical
+  warn: warning
+  smoke: <CHANGE_ME_SMOKE_IS_NOT_A_VALID_SEVERITY>
+  info: <CHANGE_ME_INFO_IS_NOT_A_VALID_SEVERITY>
+NotificantLinkPrefix: ""
+NotificantIdPrefixes: ""
+NotificantSettings:
+  - name: bigpanda
+    lookup_value: https://api.bigpanda.io/data/v2/alerts
+  - name: slack
+    lookup_value: https://hooks.slack.com/
+  - name: pagerduty
+    target_pfx: pd
+    lookup_value: pagerduty
+  - name: email
+    target_sfx: "@domain.com"
+AlertConversionRules:
+  # If "tags" are present, then automatically look for K:V in tags to create alert
+  # labels. Remaining tags, which are not in K:V format are left as is and added to
+  # 'annotations' with 'tags' key. If this is set to false, then tags are just added
+  # to annotations without looking for K:V.
+  auto_tags_detection: true
+  change_me_group_name: "CHANGE_ME_GROUP_NAME_FAILED_RFC_CHECK"
+  alert_name_checks:
+    max_length: 256
+    regex: "[a-zA-Z_][a-zA-Z0-9_]*"
+    change_me_alert_name: "CHANGE_ME_ALERT_NAME_FAILED_RFC_CHECK"
+  tag_rules:
+    base:
+      labels:
+      annotations:
+    bigpanda:  # If this key is found, then bigpanda:true is added to labels.
+      labels:
+      annotations:
+    pagerduty:
+      labels:
+      annotations:
+    slack:
+      labels:
+      annotations:
+    email:
+      labels:
+      annotations:
+DashboardDefaults:
+  TimeRange: 10m
+  Span: 15m
+  Color: green
+  Palette: palette-classic
+  TimeSeriesBarsFillOpacity: 95
+  TimeSeriesLinesFillOpacity: 5
+VariableConversions:
+MissingMetricIndicator: "*** "
+ParserConfig:
+  UnsupportedFnMsg: "CHANGE_ME_UNSUPPORTED_FUNC_"
+  NoopFuncs:
+    - default_zero
+    - fill
+    - default
+    - weighted
+  Sanitize:
+  RangeTranslations:
+    "default" : "5m"  # Default is translated to 5m
+    "vw" : "4h" # view window to time window translation - assuming 1vw = 4h here.
+    "bw" : "2h" # bucket window - defaulting to 2 hours.
+  UnitTranslations:
+    "M" : "000000" # M is translated to six zeros (1,000,000)
+  CustomTagRules:
+  AdditionalDescriptions:
+  RangeTranslations:
+  Extended: true
+  DefaultTimerange: "1h"
+  # Metric name translations change the metric name based on following map.
+  # for example, based on the following setting, aws.ec2.CPUUtilization is
+  # converted to aws.ec2.cpuutilization in the parsing phase. This is applied
+  # even before translation of chars such as '.' to '_' etc.
+  MetricNameTranslations:
+    aws.ec2.CPUUtilization: aws.ec2.cpuutilization
+  # metrics under ExpandAvgMetricNames are treated as average for which
+  # the conversion/parsing will break it down to _sum/_count metrics. For example,
+  # based on the following config, aws.ec2.CPUUtilization is first translated
+  # to aws.ec2.cpuutilzation (because this metric is also listed in above translation
+  # map) and then it's broken into aws_ec2_cpuutilization_sum/aws_ec2_cpuutilization_count
+  # so, an expression such as avg:aws.ec2.my.metric{label="val"} by {foo} will get converted into
+  # avg by (foo)((aws_ec2_my_metric_sum{label="val"})/(aws_ec2_my_metric_count{label="val"}))
+  # Note that the same filtering is applied to both metrics. Any space or time aggregate or grouping
+  # is then applied to the expanded conversion.
+  ExpandAvgMetricNames:
+    MetricNames:
+      - aws.ec2.CPUUtilization
+    AggregateNames:
+      avg: expand
+  # Following mapping contains the name of the key/label to be used for a given tag variable.
+  # if a tag variable is not listed here and is encountered in a query, then it is translated as is.
+  # example: avg:foo{$level} will convert to avg(foo{level_name=~"$level"}), but
+  #          avg:foo{$someothervar} will convert to avg(foo{$someothervar}) (since $someothervar isn't
+  # in the following list, it is not expanded.)
+  VarsMapping:
+    level: level_name
+  DropVariablesWithoutMapping: false

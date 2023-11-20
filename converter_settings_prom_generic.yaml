@@ -1,0 +1,40 @@
+FolderName: PromAlerts
+DefaultInterval: 60 # in seconds
+DefaultFor: 300 # in seconds
+DatasourceUid: "P6693426190CB2316"
+ApiToken: yourapitoken
+GrafanaHost: https://localhost:8080/
+Source: prometheus
+StopOnUnsupportedQuery: false
+StopOnUnsupportedChart: false
+AlertURLAnnotation: ""
+AlertsRFCDoc: “”
+RFCCompliantAlertsDoc: “”
+DecimalPrecision: 3
+# AlertOutfileFormat: valid options are yaml or json or both
+AlertOutfileFormat: json
+# AlertFormat valid options are prom/grafana/both
+AlertFormat: grafana
+SeverityMappings:
+NotificantLinkPrefix: ""
+# Following are considered to be prefixes of target/notificant id
+NotificantIdPrefixes: ""
+# NotificantSettings configures how the converter will look up notificant
+# from the notificants.json input file. For each notificant, the name as well as lookup_value (comma separated list)
+# is looked up in the "recipient" and "response" fields in a case-insensitive, substring matching way.
+# NotificantSettings together with the AlertConversionRules should help automatically add the right
+# labels and annotations to each converted alert.
+NotificantSettings:
+  - name: slack
+    lookup_value: https://hooks.slack.com/
+  - name: email
+    target_sfx: "@foobar.com"
+DashboardDefaults:
+  TimeRange: 10m
+  Span: 15m
+  Color: green
+  Palette: palette-classic
+VariableConversions:
+MissingMetricIndicator: "*** "
+FolderNameToFolderId:
+ParserConfig:
