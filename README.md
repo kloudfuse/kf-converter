@@ -1,4 +1,4 @@
-# conversions-binary
+# kf-converter
 
 This repository contains the binaries to run the conversions of artifacts from source query languages (Datadog, Wavefront, etc) to Grafana/PromQL.
 
