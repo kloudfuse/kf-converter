@@ -114,4 +114,5 @@ ParserConfig:
   # in the following list, it is not expanded.)
   VarsMapping:
     level: level_name
+    scope: scope
   DropVariablesWithoutMapping: false
